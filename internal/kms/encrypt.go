@@ -3,18 +3,28 @@ package kms
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"cloud.google.com/go/kms/apiv1/kmspb"
+	"github.com/joho/godotenv"
 )
 
 var (
-	KMSKeyName = os.Getenv("GCP_KMS_KEY")
 	kmsClient  *kms.KeyManagementClient
+	KMSKeyName string
 )
 
 func init() {
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	var KMSKeyName = os.Getenv("GCP_KMS_KEY")
+
 	if KMSKeyName == "" {
 		fmt.Println("Warning: GCP_KMS_KEY env is not set")
 	}

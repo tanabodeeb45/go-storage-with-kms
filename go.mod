@@ -7,6 +7,7 @@ toolchain go1.24.10
 require (
 	cloud.google.com/go/kms v1.23.2
 	cloud.google.com/go/storage v1.57.2
+	github.com/joho/godotenv v1.5.1
 )
 
 require (
