@@ -2,16 +2,29 @@ package main
 
 import (
 	"context"
+	"fmt"
 	kms "go-storage-with-kms/internal/kms"
 	stg "go-storage-with-kms/internal/storage"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
-var bucketName = os.Getenv("GCP_BUCKET_NAME")
-
 func ProcessInbox(ctx context.Context, e stg.GCSEvent) error {
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	bucketName := os.Getenv("GCP_BUCKET_NAME")
+
+	if bucketName == "" {
+		fmt.Println("Warning: GCP_BUCKET_NAME env is not set")
+	}
+
 	inboxKey := e.Name
 
 	if !strings.HasPrefix(inboxKey, "inbox/") {
