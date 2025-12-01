@@ -2,10 +2,13 @@ package kms
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"os"
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"cloud.google.com/go/kms/apiv1/kmspb"
+	"github.com/joho/godotenv"
 )
 
 var kmsClient *kms.KeyManagementClient
@@ -30,7 +33,18 @@ func Encrypt(ctx context.Context, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	env := godotenv.Load()
+	if env != nil {
+		return nil, env
+	}
+
 	keyName := os.Getenv("GCP_KMS_KEY")
+
+	fmt.Println(keyName)
+
+	if keyName == "" {
+		log.Fatal("GCP_KMS_KEY environment variable not set")
+	}
 
 	req := &kmspb.EncryptRequest{
 		Name:      keyName,
