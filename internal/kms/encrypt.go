@@ -2,54 +2,44 @@ package kms
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"os"
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"cloud.google.com/go/kms/apiv1/kmspb"
-	"github.com/joho/godotenv"
 )
 
-var (
-	kmsClient  *kms.KeyManagementClient
-	KMSKeyName string
-)
+var kmsClient *kms.KeyManagementClient
 
-func init() {
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func getClient(ctx context.Context) (*kms.KeyManagementClient, error) {
+	if kmsClient != nil {
+		return kmsClient, nil
 	}
 
-	var KMSKeyName = os.Getenv("GCP_KMS_KEY")
-
-	if KMSKeyName == "" {
-		fmt.Println("Warning: GCP_KMS_KEY env is not set")
-	}
-
-	ctx := context.Background()
 	client, err := kms.NewKeyManagementClient(ctx)
 	if err != nil {
-		panic(fmt.Errorf("failed to create kms client: %w", err))
+		return nil, err
 	}
+
 	kmsClient = client
+	return kmsClient, nil
 }
 
-func Encrypt(ctx context.Context, plain []byte) ([]byte, error) {
-	if KMSKeyName == "" {
-		return nil, fmt.Errorf("GCP_KMS_KEY env is empty")
+func Encrypt(ctx context.Context, plaintext []byte) ([]byte, error) {
+	client, err := getClient(ctx)
+	if err != nil {
+		return nil, err
 	}
+
+	keyName := os.Getenv("GCP_KMS_KEY")
 
 	req := &kmspb.EncryptRequest{
-		Name:      KMSKeyName,
-		Plaintext: plain,
+		Name:      keyName,
+		Plaintext: plaintext,
 	}
 
-	resp, err := kmsClient.Encrypt(ctx, req)
+	resp, err := client.Encrypt(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("kms encrypt error: %w", err)
+		return nil, err
 	}
 
 	return resp.Ciphertext, nil
